@@ -7,11 +7,6 @@ from typing import Optional
 app = FastAPI()
 
 # CORS 설정
-origins = [
-    "http://localhost:3000",  # 허용할 출처 목록
-    "http://frontend:3000"
-]
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 허용할 출처
@@ -61,3 +56,26 @@ async def get_latest_count():
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to retrieve count")
     return {"count": 0}
+
+@app.post("/increase", response_model=CountResponse)
+async def increase_count():
+    try:
+        latest_count = await db.counters.find().sort("_id", -1).limit(1).to_list(length=1)
+        new_count = latest_count[0]["count"] + 1 if latest_count else 1
+        await db.counters.insert_one({"count": new_count})
+        return {"count": new_count}
+    except Exception as e:
+        print(f"Error occurred while increasing count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to increase count")
+
+# 카운트 감소
+@app.post("/decrease", response_model=CountResponse)
+async def decrease_count():
+    try:
+        latest_count = await db.counters.find().sort("_id", -1).limit(1).to_list(length=1)
+        new_count = latest_count[0]["count"] - 1 if latest_count and latest_count[0]["count"] > 0 else 0
+        await db.counters.insert_one({"count": new_count})
+        return {"count": new_count}
+    except Exception as e:
+        print(f"Error occurred while decreasing count: {e}")
+        raise HTTPException(status_code=500, detail="Failed to decrease count")
