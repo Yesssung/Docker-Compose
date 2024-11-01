@@ -1,0 +1,20 @@
+# Node.js 22 이미지로 빌드 및 실행
+FROM node:22
+
+# 컨테이너 내 작업 디렉토리 설정
+WORKDIR /app
+
+# package.json과 package-lock.json 파일을 복사
+COPY package*.json ./
+
+# 의존성 설치
+RUN npm install
+
+# 모든 소스 코드를 컨테이너로 복사
+COPY . .
+
+# 개발 서버 실행 (npm start)
+CMD ["npm", "start"]
+
+# 컨테이너에서 사용할 포트를 노출
+EXPOSE 3000
